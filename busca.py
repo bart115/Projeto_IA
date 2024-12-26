@@ -1,21 +1,37 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from heapq import heappop, heappush
+from formulacao import EstadoDistribuicao, Operador
 
-def encontrar_melhores_rotas(grafo, veiculos):
+def encontrar_melhores_rotas(grafo, veiculos, destino):
+    """
+    Encontra as melhores rotas para cada veículo até o destino
+    """
     resultados = []
     
     for veiculo in veiculos:
-        melhor_rota = dijkstra(grafo, "zona1", "zona3", veiculo)
-        resultados.append({
-            "veiculo": veiculo["tipo"],
-            "rota": melhor_rota,
-        })
+        # Usar A* para encontrar o melhor caminho
+        melhor_rota = astar_search(
+            grafo, 
+            veiculo['pos_atual'],
+            destino,
+            veiculo,
+            heuristica_distancia
+        )
         
-        # Mostrar grafo com a rota destacada
-        mostrar_rota(grafo, melhor_rota, veiculo["tipo"])
+        if melhor_rota:
+            resultados.append({
+                'veiculo': veiculo['tipo'],
+                'rota': melhor_rota,
+            })
+            
+            # Mostrar grafo com a rota destacada
+            mostrar_rota(grafo, melhor_rota, veiculo['tipo'])
     
     return resultados
+
+
+
 
 def dijkstra(grafo, origem, destino, veiculo):
     distancias = {no: float('inf') for no in grafo}
@@ -40,6 +56,48 @@ def dijkstra(grafo, origem, destino, veiculo):
                     heappush(fila, (nova_dist, vizinho, caminho + [atual]))
 
     return melhor_rota
+
+
+def astar_search(grafo, inicio, destino, veiculo, heuristica):
+    """
+    Implementa o algoritmo A* para encontrar o melhor caminho
+    """
+    fronteira = [(0, inicio, [])]
+    explorados = set()
+    g_score = {inicio: 0}
+    
+    while fronteira:
+        f_atual, no_atual, caminho = heappop(fronteira)
+        
+        if no_atual == destino:
+            return caminho + [no_atual]
+            
+        if no_atual in explorados:
+            continue
+            
+        explorados.add(no_atual)
+        
+        for vizinho in grafo[no_atual]:
+            if veiculo['tipo'] not in grafo[no_atual][vizinho]['acessibilidade']:
+                continue
+                
+            novo_g = g_score[no_atual] + grafo[no_atual][vizinho]['tempo']
+            
+            if vizinho not in g_score or novo_g < g_score[vizinho]:
+                g_score[vizinho] = novo_g
+                f_score = novo_g + heuristica(grafo, vizinho, destino)
+                heappush(fronteira, (f_score, vizinho, caminho + [no_atual]))
+    
+    return None
+
+def heuristica_distancia(grafo, atual, destino):
+    """
+    Calcula a heurística baseada na distância euclidiana
+    """
+    pos_atual = grafo.nodes[atual]['pos']
+    pos_destino = grafo.nodes[destino]['pos']
+    return ((pos_atual[0] - pos_destino[0])**2 + 
+            (pos_atual[1] - pos_destino[1])**2)**0.5
 
 def mostrar_rota(grafo, rota, tipo_veiculo):
     # Extrair as posições dos nós
