@@ -1,0 +1,6 @@
+tipo,capacidade,velocidade,autonomia,acessibilidade
+drone,10,50,20,drone
+camiao,2000,60,500,camiao
+helicoptero,500,120,100,helicoptero
+barco,1000,30,200,barco
+mota,50,80,5,camiao;drone

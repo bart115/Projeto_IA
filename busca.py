@@ -1,36 +1,99 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from heapq import heappop, heappush
-from formulacao import EstadoDistribuicao, Operador
 
-def encontrar_melhores_rotas(grafo, veiculos, destino):
-    """
-    Encontra as melhores rotas para cada veículo até o destino
-    """
+def heuristica(grafo, atual, destino):
+    """Calcula distância euclidiana entre dois pontos"""
+    x1, y1 = grafo.nodes[atual]['pos']
+    x2, y2 = grafo.nodes[destino]['pos']
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+
+def a_star(grafo, origem, destino, veiculo):
+    fronteira = [(0, origem, [])]  # (f_score, node, path)
+    g_score = {origem: 0}
+    f_score = {origem: heuristica(grafo, origem, destino)}
+    
+    while fronteira:
+        _, atual, caminho = heappop(fronteira)
+        
+        if atual == destino:
+            return caminho + [atual]
+            
+        for vizinho, dados in grafo[atual].items():
+            if veiculo["tipo"] not in dados["acessibilidade"]:
+                continue
+                
+            # Calcular g_score para este vizinho
+            tempo_base = dados["tempo"]
+            velocidade_relativa = veiculo["velocidade"] / 60.0
+            peso = tempo_base / velocidade_relativa
+            tentative_g = g_score[atual] + peso
+            
+            if vizinho not in g_score or tentative_g < g_score[vizinho]:
+                g_score[vizinho] = tentative_g
+                f_score[vizinho] = tentative_g + heuristica(grafo, vizinho, destino)
+                heappush(fronteira, (f_score[vizinho], vizinho, caminho + [atual]))
+    
+    return []
+
+def encontrar_melhores_rotas(grafo, veiculos):
     resultados = []
     
     for veiculo in veiculos:
-        # Usar A* para encontrar o melhor caminho
-        melhor_rota = astar_search(
-            grafo, 
-            veiculo['pos_atual'],
-            destino,
-            veiculo,
-            heuristica_distancia
-        )
+        scores_zonas = {
+            zona: (grafo.nodes[zona]['populacao'] * grafo.nodes[zona]['gravidade']) / 100
+            for zona in grafo.nodes()
+        }
         
-        if melhor_rota:
-            resultados.append({
-                'veiculo': veiculo['tipo'],
-                'rota': melhor_rota,
-            })
+        rota_atual = ['zona1']
+        autonomia_restante = veiculo['autonomia']
+        
+        while autonomia_restante > 0:
+            melhor_proxima_zona = None
+            melhor_score = 0
+            melhor_caminho = []
+            custo_total = float('inf')
             
-            # Mostrar grafo com a rota destacada
-            mostrar_rota(grafo, melhor_rota, veiculo['tipo'])
+            for zona in grafo.nodes():
+                if zona not in rota_atual:
+                    # Usar A* para encontrar caminho
+                    caminho = a_star(grafo, rota_atual[-1], zona, veiculo)
+                    if not caminho:
+                        continue
+                        
+                    # Calcular custo total do caminho
+                    custo_caminho = 0
+                    for i in range(len(caminho)-1):
+                        dados = grafo[caminho[i]][caminho[i+1]]
+                        custo_caminho += dados['distancia'] / veiculo['velocidade']
+                    
+                    # Verificar se a autonomia permite completar o caminho
+                    if custo_caminho <= autonomia_restante:
+                        score_ajustado = scores_zonas[zona] / custo_caminho
+                        if score_ajustado > melhor_score:
+                            melhor_score = score_ajustado
+                            melhor_proxima_zona = zona
+                            melhor_caminho = caminho[1:]  # Excluir nó atual
+                            custo_total = custo_caminho
+            
+            if melhor_proxima_zona:
+                rota_atual.extend(melhor_caminho)
+                autonomia_restante -= custo_total
+                if autonomia_restante < 0:  # Segurança extra para evitar valores negativos
+                    autonomia_restante = 0
+            else:
+                break  # Nenhuma zona acessível com a autonomia restante
+        
+        resultados.append({
+            "veiculo": veiculo["tipo"],
+            "rota": rota_atual,
+            "zonas_atendidas": len(rota_atual) - 1,
+            "autonomia_restante": autonomia_restante
+        })
+        
+        mostrar_rota(grafo, rota_atual, veiculo["tipo"])
     
     return resultados
-
-
 
 
 def dijkstra(grafo, origem, destino, veiculo):
@@ -41,14 +104,19 @@ def dijkstra(grafo, origem, destino, veiculo):
 
     while fila:
         dist, atual, caminho = heappop(fila)
-
+        
         if atual == destino:
             melhor_rota = caminho + [atual]
             break
 
         for vizinho, dados in grafo[atual].items():
+            # Verificar se o veículo pode usar esta rota
             if veiculo["tipo"] in dados["acessibilidade"]:
-                peso = dados["tempo"]
+                # Calcular tempo considerando velocidade do veículo
+                tempo_base = dados["tempo"]
+                velocidade_relativa = veiculo["velocidade"] / 60.0  # Normalizar velocidade
+                peso = tempo_base / velocidade_relativa
+                
                 nova_dist = dist + peso
 
                 if nova_dist < distancias[vizinho]:
@@ -56,48 +124,6 @@ def dijkstra(grafo, origem, destino, veiculo):
                     heappush(fila, (nova_dist, vizinho, caminho + [atual]))
 
     return melhor_rota
-
-
-def astar_search(grafo, inicio, destino, veiculo, heuristica):
-    """
-    Implementa o algoritmo A* para encontrar o melhor caminho
-    """
-    fronteira = [(0, inicio, [])]
-    explorados = set()
-    g_score = {inicio: 0}
-    
-    while fronteira:
-        f_atual, no_atual, caminho = heappop(fronteira)
-        
-        if no_atual == destino:
-            return caminho + [no_atual]
-            
-        if no_atual in explorados:
-            continue
-            
-        explorados.add(no_atual)
-        
-        for vizinho in grafo[no_atual]:
-            if veiculo['tipo'] not in grafo[no_atual][vizinho]['acessibilidade']:
-                continue
-                
-            novo_g = g_score[no_atual] + grafo[no_atual][vizinho]['tempo']
-            
-            if vizinho not in g_score or novo_g < g_score[vizinho]:
-                g_score[vizinho] = novo_g
-                f_score = novo_g + heuristica(grafo, vizinho, destino)
-                heappush(fronteira, (f_score, vizinho, caminho + [no_atual]))
-    
-    return None
-
-def heuristica_distancia(grafo, atual, destino):
-    """
-    Calcula a heurística baseada na distância euclidiana
-    """
-    pos_atual = grafo.nodes[atual]['pos']
-    pos_destino = grafo.nodes[destino]['pos']
-    return ((pos_atual[0] - pos_destino[0])**2 + 
-            (pos_atual[1] - pos_destino[1])**2)**0.5
 
 def mostrar_rota(grafo, rota, tipo_veiculo):
     # Extrair as posições dos nós
