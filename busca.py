@@ -36,7 +36,7 @@ def a_star(grafo, origem, destino, veiculo):
     
     return []
 
-def encontrar_melhores_rotas(grafo, veiculos):
+def encontrar_melhores_rotas(grafo, veiculos,func):
     resultados = []
     
     for veiculo in veiculos:
@@ -56,8 +56,8 @@ def encontrar_melhores_rotas(grafo, veiculos):
             
             for zona in grafo.nodes():
                 if zona not in rota_atual:
-                    # Usar A* para encontrar caminho
-                    caminho = a_star(grafo, rota_atual[-1], zona, veiculo)
+                    # Usar um dos algoritmos escolhidos
+                    caminho = func(grafo, rota_atual[-1], zona, veiculo)
                     if not caminho:
                         continue
                         
@@ -141,3 +141,67 @@ def mostrar_rota(grafo, rota, tipo_veiculo):
     plt.gcf().canvas.manager.set_window_title("Rota Calculada")
 
     plt.show()
+
+def dfs(grafo, origem, destino, veiculo):
+        pilha = [(origem, [origem])]
+        visitados = set()
+    
+        while pilha:
+            (vertice, caminho) = pilha.pop()
+            
+            if vertice == destino:
+                return caminho
+                
+            if vertice not in visitados:
+                visitados.add(vertice)
+                
+                for vizinho, dados in grafo[vertice].items():
+                    if vizinho not in visitados and veiculo["tipo"] in dados["acessibilidade"]:
+                        pilha.append((vizinho, caminho + [vizinho]))
+        
+        return []
+
+def bfs(grafo, origem, destino, veiculo):
+    fila = [(origem, [origem])]
+    visitados = set([origem])
+
+    while fila:
+        (vertice, caminho) = fila.pop(0)
+        
+        if vertice == destino:
+            return caminho
+            
+        for vizinho, dados in grafo[vertice].items():
+            if vizinho not in visitados and veiculo["tipo"] in dados["acessibilidade"]:
+                visitados.add(vizinho)
+                fila.append((vizinho, caminho + [vizinho]))
+    
+    return []
+
+def greedy(grafo, origem, destino, veiculo):
+    atual = origem
+    caminho = [origem]
+    visitados = set([origem])
+    
+    while atual != destino:
+        melhor_vizinho = None
+        menor_distancia = float('inf')
+        
+        for vizinho, dados in grafo[atual].items():
+            if vizinho not in visitados and veiculo["tipo"] in dados["acessibilidade"]:
+                distancia = heuristica(grafo, vizinho, destino)
+                if distancia < menor_distancia:
+                    menor_distancia = distancia
+                    melhor_vizinho = vizinho
+        
+        if melhor_vizinho is None:
+            return []  # Caminho não encontrado
+            
+        atual = melhor_vizinho
+        caminho.append(atual)
+        visitados.add(atual)
+        
+        if atual == destino:
+            return caminho
+            
+    return caminho
