@@ -2,6 +2,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import csv
 
+
 def carregar_grafo(zonas_csv, caminhos_csv):
     grafo = nx.Graph()
     

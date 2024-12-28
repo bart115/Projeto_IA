@@ -3,6 +3,9 @@ from simulacao import simular_cenario
 from veiculos import carregar_veiculos_csv
 from grafo import carregar_grafo, mostrar_grafo
 
+import matplotlib
+matplotlib.use('TkAgg')  # Altere para 'Qt5Agg' ou outro backend se necessário
+
 # Qual é a origem de onde vamos sair? em que zona estamos?
 def main():
     print("Iniciando Sistema de Distribuição de Recursos...\n")
@@ -10,6 +13,7 @@ def main():
     
     # Caminhos dos ficheiros CSV
     caminho_zonas = "zonas.csv"
+
     caminho_caminhos = "caminhos.csv"
     
      # Carregar grafo
