@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import networkx as nx
+import threading
 from heapq import heappop, heappush
 
 def heuristica(grafo, atual, destino):
@@ -36,8 +37,13 @@ def a_star(grafo, origem, destino, veiculo):
     
     return []
 
-def encontrar_melhores_rotas(grafo, veiculos,func):
+def encontrar_melhores_rotas(grafo, veiculos, func):
     resultados = []
+
+    for veiculo in veiculos:
+        print("Veículo recebido:", veiculo)
+        autonomia_restante = veiculo["autonomia"]  # Verifique o tipo de `veiculo` aqui
+
     
     for veiculo in veiculos:
         scores_zonas = {
@@ -56,33 +62,30 @@ def encontrar_melhores_rotas(grafo, veiculos,func):
             
             for zona in grafo.nodes():
                 if zona not in rota_atual:
-                    # Usar um dos algoritmos escolhidos
                     caminho = func(grafo, rota_atual[-1], zona, veiculo)
                     if not caminho:
                         continue
-                        
-                    # Calcular custo total do caminho
+                    
                     custo_caminho = 0
                     for i in range(len(caminho)-1):
                         dados = grafo[caminho[i]][caminho[i+1]]
                         custo_caminho += dados['distancia'] / veiculo['velocidade']
                     
-                    # Verificar se a autonomia permite completar o caminho
                     if custo_caminho <= autonomia_restante:
                         score_ajustado = scores_zonas[zona] / custo_caminho
                         if score_ajustado > melhor_score:
                             melhor_score = score_ajustado
                             melhor_proxima_zona = zona
-                            melhor_caminho = caminho[1:]  # Excluir nó atual
+                            melhor_caminho = caminho[1:]
                             custo_total = custo_caminho
             
             if melhor_proxima_zona:
                 rota_atual.extend(melhor_caminho)
                 autonomia_restante -= custo_total
-                if autonomia_restante < 0:  # Segurança extra para evitar valores negativos
+                if autonomia_restante < 0:
                     autonomia_restante = 0
             else:
-                break  # Nenhuma zona acessível com a autonomia restante
+                break
         
         resultados.append({
             "veiculo": veiculo["tipo"],
@@ -90,10 +93,8 @@ def encontrar_melhores_rotas(grafo, veiculos,func):
             "zonas_atendidas": len(rota_atual) - 1,
             "autonomia_restante": autonomia_restante
         })
-        
-        mostrar_rota(grafo, rota_atual, veiculo["tipo"])
     
-    return resultados
+    return resultados  # Apenas retorna os resultados, sem exibir
 
 
 def dijkstra(grafo, origem, destino, veiculo):
@@ -125,22 +126,40 @@ def dijkstra(grafo, origem, destino, veiculo):
 
     return melhor_rota
 
-def mostrar_rota(grafo, rota, tipo_veiculo):
-    # Extrair as posições dos nós
-    pos = nx.get_node_attributes(grafo, 'pos')
-    
-    # Desenhar o grafo básico
-    plt.figure(figsize=(8, 6))
-    nx.draw(grafo, pos, with_labels=True, node_size=700, node_color='skyblue', font_size=10, font_weight='bold')
-    
-    # Destacar a rota encontrada
-    rota_arestas = [(rota[i], rota[i+1]) for i in range(len(rota) - 1)]
-    nx.draw_networkx_edges(grafo, pos, edgelist=rota_arestas, edge_color='red', width=2.5)
-    
-    plt.title(f"Rota Calculada para o Veículo: {tipo_veiculo}")
-    plt.gcf().canvas.manager.set_window_title("Rota Calculada")
+def exibir_grafo(grafo, rota=None, tipo_veiculo=None):
+    """Exibe o grafo em uma thread separada para não haver 
+       conflito com o Pygame.
 
-    plt.show()
+       Se não houver rota, exibe o grafo básico. 
+       Caso contrário, exibe o grafo com a rota destacada.
+    """
+    def exibir():
+        # Extrair as posições dos nós
+        pos = nx.get_node_attributes(grafo, 'pos')
+        
+        # Desenhar o grafo básico
+        plt.figure(figsize=(8, 6))
+        nx.draw(grafo, pos, with_labels=True, node_size=700, node_color='skyblue', font_size=10, font_weight='bold')
+        
+        # Destacar a rota encontrada
+        if rota: 
+            rota_arestas = [(rota[i], rota[i+1]) for i in range(len(rota) - 1)]
+            nx.draw_networkx_edges(grafo, pos, edgelist=rota_arestas, edge_color='red', width=2.5)
+        
+            if tipo_veiculo: 
+                plt.title(f"Rota Calculada para o Veículo: {tipo_veiculo}")
+            else:
+                plt.title("Rota Destacada")
+        
+        else:
+            plt.title("Grafo Inicial")
+        
+        plt.gcf().canvas.manager.set_window_title("Exibição do Grafo")
+        plt.show(block=True)
+
+    # Iniciar o grafo em uma nova thread
+    thread = threading.Thread(target=exibir)
+    thread.start()
 
 def dfs(grafo, origem, destino, veiculo):
         pilha = [(origem, [origem])]

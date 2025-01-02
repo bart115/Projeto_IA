@@ -1,7 +1,11 @@
 import networkx as nx
+import subprocess
+import pickle
 import matplotlib.pyplot as plt
+import threading
 import csv
 
+from busca import exibir_grafo
 
 def carregar_grafo(zonas_csv, caminhos_csv):
     grafo = nx.Graph()
@@ -51,4 +55,7 @@ def mostrar_grafo(grafo):
     nx.draw_networkx_edge_labels(grafo, pos, edge_labels=edge_labels)
     
     plt.gcf().canvas.manager.set_window_title("Grafo de Zonas e Rotas")
-    plt.show()
+    plt.show(block=True)
+
+
+

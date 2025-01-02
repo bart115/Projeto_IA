@@ -1,17 +1,17 @@
-from busca import encontrar_melhores_rotas, a_star, dijkstra, dfs, bfs, greedy, mostrar_rota
+from busca import encontrar_melhores_rotas, a_star, dijkstra, dfs, bfs, greedy, exibir_grafo
 from simulacao import simular_cenario
 from veiculos import carregar_veiculos_csv
 from grafo import carregar_grafo, mostrar_grafo
 from validacao import validar_dados_csv, testar_conectividade_grafo, imprimir_veiculos
+from menus import menu_principal
 
 import pandas as pd
 import matplotlib
 matplotlib.use('TkAgg')  # Altere para 'Qt5Agg' ou outro backend se necessário
 
 # Qual é a origem de onde vamos sair? em que zona estamos?
-def main():
+def carregar_dados():
     print("Iniciando Sistema de Distribuição de Recursos...\n")
-    
     
     # Caminhos dos ficheiros CSV
     caminho_zonas = "zonas.csv"
@@ -23,78 +23,63 @@ def main():
     caminhos_df = pd.read_csv(caminho_caminhos)
     veiculos_df = pd.read_csv(caminho_veiculos)
 
-     # Validar dados
-    print("A validar dados...")
+    # Validar dados
+    print("A validar dados...\n")
     erros = validar_dados_csv(zonas_df, caminhos_df, veiculos_df)
     if erros: 
-        print("Erros encontrados:")
+        print("Erros encontrados:\n")
         for erro in erros:
             print(f"- {erro}")
         return 
-    print("Dados validados com sucesso!")
+    print("Dados validados com sucesso!\n")
 
-
-     # Carregar grafo
     grafo = carregar_grafo(caminho_zonas, caminho_caminhos)
-    print("Grafo carregado com sucesso!")
+    print(f"Grafo carregado: {type(grafo)}, Nós: {grafo.nodes(data=True)}")
+    
+    veiculos = carregar_veiculos_csv(caminho_veiculos)
 
+    return grafo, veiculos
+
+# Exibir informações
+def exibir_informacoes(grafo, veiculos):
+
+   
     # Testar conectividade do grafo
+    print("\nA testar a conectividade do grafo...")
     conectividade = testar_conectividade_grafo(grafo)
     print(conectividade)
 
+    """
     # Exibir grafo inicial
-    print("Visualizando o grafo inicial...")
+    print("\nVisualizar o grafo inicial...")
     mostrar_grafo(grafo)
-    
+    """
+
     # Carregar veículos a partir do CSV
-    veiculos = carregar_veiculos_csv("veiculos.csv")
-    print("Veículos carregados:")
+    print("\nVeículos carregados:")
     imprimir_veiculos(veiculos)
     
     # Simular cenários dinâmicos
-    print("Simulando cenários dinâmicos...")
+    print("\nA simular cenários dinâmicos...")
     simular_cenario(grafo)
 
- 
-    # Escolher origem, destino
-    #print("\nDefina os pontos de partida e destino:")
-    #origem = input("Digite a zona de origem (ex: zona1): ")
-    #destino = input("Digite a zona de destino (ex: zona2): ")
 
-     # Menu de seleção
-    print("\nEscolha o algoritmo:")
-    print("1. A*")
-    print("2. Dijkstra")
-    print("3. DFS (Busca em Profundidade)")
-    print("4. BFS (Busca em Largura)")
-    print("5. Greedy")
+# Função principal
+def main():
+    print("A iniciar o sistema de Distribuição de Recursos...\n")
 
-    escolha = input("Digite o número do algoritmo: ")
-    
-     # Executar algoritmo escolhido
-    algoritmos = {
-        "1": ("A*", a_star),
-        "2": ("Dijkstra", dijkstra),
-        "3": ("DFS", dfs),
-        "4": ("BFS", bfs),
-        "5": ("Greedy", greedy)
-    }
-     
-    # Executar algoritmo escolhido para todos os veículos
-    if escolha in algoritmos:
-        nome, func = algoritmos[escolha]
-    else:
-        print("Escolha inválida!")
+    # Carregar dados
+    grafo, veiculos = carregar_dados()
+    if grafo is None or veiculos is None:
+        print("Erro ao carregar dados! A terminar o programa...")
         return
-   
-    # Encontrar melhores rotas
-    print("\nCalculando rotas de distribuição...")
-    resultados = encontrar_melhores_rotas(grafo, veiculos, func)
     
-    # Exibir resultados
-    print("\nResultados da Simulação:")
-    for resultado in resultados:
-        print(resultado)
+    # Exibir informações no terminal 
+    exibir_informacoes(grafo, veiculos)
+
+    # Iniciar o menu principal
+    menu_principal(grafo,veiculos)
+
 
 if __name__ == "__main__":
     main()
