@@ -1,7 +1,7 @@
 import pygame, sys
 import time
 from busca import encontrar_melhores_rotas, exibir_grafo, a_star, dijkstra, dfs, bfs, greedy
-from grafo import mostrar_grafo
+
 
 # Inicia pygame
 pygame.init()

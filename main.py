@@ -1,7 +1,6 @@
-from busca import encontrar_melhores_rotas, a_star, dijkstra, dfs, bfs, greedy, exibir_grafo
 from simulacao import simular_cenario
 from veiculos import carregar_veiculos_csv
-from grafo import carregar_grafo, mostrar_grafo
+from grafo import carregar_grafo
 from validacao import validar_dados_csv, testar_conectividade_grafo, imprimir_veiculos
 from menus import menu_principal
 
