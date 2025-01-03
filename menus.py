@@ -1,5 +1,5 @@
 import pygame, sys
-import threading
+import time
 from busca import encontrar_melhores_rotas, exibir_grafo, a_star, dijkstra, dfs, bfs, greedy
 from grafo import mostrar_grafo
 
@@ -164,23 +164,38 @@ def menu_algoritmos(grafo, veiculos):
                 mouse_x, mouse_y = event.pos
                 if 400 <= mouse_x <= 600 and 100 <= mouse_y <= 150:
                    #print(f"Tipo de grafo: {type(grafo)}")  # Verifica o tipo de grafo 
+                    start_time = time.time()
                     rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], a_star)[0]
+                    end_time = time.time()
+                    print(f"Tempo de execução do algoritmo A*: {end_time - start_time: .4f} segundos")  
                     exibir_grafo(grafo, rota=rota["rota"], tipo_veiculo=veiculo_selecionado["tipo"])
                 
                 elif 400 <= mouse_x <= 600 and 200 <= mouse_y <= 250:
-                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], a_star)[0]
+                    start_time = time.time()
+                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], dijkstra)[0]
+                    end_time = time.time()
+                    print(f"Tempo de execução do algoritmo Dijkstra: {end_time - start_time: .4f} segundos")  
                     exibir_grafo(grafo, rota=rota["rota"], tipo_veiculo=veiculo_selecionado["tipo"])
                 
                 elif 400 <= mouse_x <= 600 and 300 <= mouse_y <= 350:  
-                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], a_star)[0]
+                    start_time = time.time()
+                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], dfs)[0]
+                    end_time = time.time()
+                    print(f"Tempo de execução do algoritmo DFS: {end_time - start_time: .4f} segundos")  
                     exibir_grafo(grafo, rota=rota["rota"], tipo_veiculo=veiculo_selecionado["tipo"])
                 
                 elif 400 <= mouse_x <= 600 and 400 <= mouse_y <= 450:
-                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], a_star)[0]
+                    start_time = time.time()
+                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], bfs)[0]
+                    end_time = time.time()
+                    print(f"Tempo de execução do algoritmo BFS: {end_time - start_time: .4f} segundos")  
                     exibir_grafo(grafo, rota=rota["rota"], tipo_veiculo=veiculo_selecionado["tipo"])
                 
                 elif 400 <= mouse_x <= 600 and 500 <= mouse_y <= 550:
-                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], a_star)[0]
+                    start_time = time.time()
+                    rota = encontrar_melhores_rotas(grafo, [veiculo_selecionado], greedy)[0]
+                    end_time = time.time()
+                    print(f"Tempo de execução do algoritmo Greedy: {end_time - start_time: .4f} segundos")  
                     exibir_grafo(grafo, rota=rota["rota"], tipo_veiculo=veiculo_selecionado["tipo"])
                 
                 elif 400 <= mouse_x <= 600 and 600 <= mouse_y <= 650:

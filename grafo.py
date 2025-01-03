@@ -1,8 +1,5 @@
 import networkx as nx
-import subprocess
-import pickle
 import matplotlib.pyplot as plt
-import threading
 import csv
 
 from busca import exibir_grafo
