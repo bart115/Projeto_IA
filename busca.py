@@ -46,6 +46,7 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
 
     
     for veiculo in veiculos:
+        # Calcula o score inicial de cada zona baseado na prioridade (população e gravidade)
         scores_zonas = {
             zona: (grafo.nodes[zona]['populacao'] * grafo.nodes[zona]['gravidade']) / 100
             for zona in grafo.nodes()
@@ -53,6 +54,7 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
         
         rota_atual = ['zona1']
         autonomia_restante = veiculo['autonomia']
+        tempo_acumulado = 0 # Tempo acumulado em minutos
         
         while autonomia_restante > 0:
             melhor_proxima_zona = None
@@ -67,23 +69,38 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
                         continue
                     
                     custo_caminho = 0
+                    tempo_caminho = 0
                     for i in range(len(caminho)-1):
                         dados = grafo[caminho[i]][caminho[i+1]]
                         custo_caminho += dados['distancia'] / veiculo['velocidade']
+                        tempo_caminho += dados['tempo']
+
+                    # Verifica autonomia restante
+                    if custo_caminho > autonomia_restante:
+                        continue
+
+                    # Verifica a janela de tempo crítico 
+                    tempo_chegada = tempo_acumulado + tempo_caminho
+                    if tempo_chegada > grafo.nodes[zona]['tempo_critico']:
+                        continue
+
+                    # Calcula o score ajustado
+                    tempo_restante = max(1, grafo.nodes[zona]['tempo_critico'] - tempo_chegada)
+                    score_ajustado = (scores_zonas[zona] / custo_caminho) + (1 / tempo_restante)
                     
-                    if custo_caminho <= autonomia_restante:
-                        score_ajustado = scores_zonas[zona] / custo_caminho
-                        if score_ajustado > melhor_score:
-                            melhor_score = score_ajustado
-                            melhor_proxima_zona = zona
-                            melhor_caminho = caminho[1:]
-                            custo_total = custo_caminho
-            
+                    # Atualizar se for a melhor zona até agora
+                    if score_ajustado > melhor_score:
+                        melhor_score = score_ajustado
+                        melhor_proxima_zona = zona
+                        melhor_caminho = caminho[1:]
+                        custo_total = custo_caminho
+                        tempo_caminho_selecionado = tempo_caminho
+
+            # Atualizar a rota 
             if melhor_proxima_zona:
                 rota_atual.extend(melhor_caminho)
                 autonomia_restante -= custo_total
-                if autonomia_restante < 0:
-                    autonomia_restante = 0
+                tempo_acumulado += tempo_caminho_selecionado
             else:
                 break
         
@@ -91,7 +108,8 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
             "veiculo": veiculo["tipo"],
             "rota": rota_atual,
             "zonas_atendidas": len(rota_atual) - 1,
-            "autonomia_restante": autonomia_restante
+            "autonomia_restante": autonomia_restante,
+            "tempo_total": tempo_acumulado
         })
     
     return resultados  # Apenas retorna os resultados, sem exibir
