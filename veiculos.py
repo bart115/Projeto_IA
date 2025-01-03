@@ -18,7 +18,7 @@ def carregar_veiculos_csv(caminho_csv):
                 "capacidade": int(linha["capacidade"]),
                 "velocidade": int(linha["velocidade"]),
                 "autonomia": int(linha["autonomia"]),
-                "acessibilidade": linha["acessibilidade"].split(";")  # Converter acessibilidade para uma lista
+                "acessibilidade": linha["acessibilidade"].split(";") # Converter acessibilidade para uma lista
             }
             veiculos.append(veiculo)
     

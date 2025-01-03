@@ -1,5 +1,5 @@
 import unittest
-from grafo import mostrar_grafo
+from grafo import criar_grafo, carregar_grafo, mostrar_grafo
 from busca import a_star, dijkstra
 
 

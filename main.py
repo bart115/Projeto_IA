@@ -63,6 +63,11 @@ def exibir_informacoes(grafo, veiculos):
     print("\nA simular cenários dinâmicos...")
     simular_cenario(grafo)
 
+    print("\nRelatório Final:")
+    for zona in grafo.nodes:
+        print(f"Zona: {zona}, Suprimentos Necessários Restantes: {grafo.nodes[zona]['suprimentos_necessarios']}")
+    for veiculo in veiculos:
+        print(f"Veículo: {veiculo['tipo']}, Suprimentos Restantes: {veiculo['capacidade']}")
 
 # Função principal
 def main():

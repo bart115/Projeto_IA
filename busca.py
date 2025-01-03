@@ -43,7 +43,7 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
     for veiculo in veiculos:
         print("Veículo recebido:", veiculo)
         autonomia_restante = veiculo["autonomia"]  # Verifique o tipo de `veiculo` aqui
-
+        suprimentos_restantes = veiculo["capacidade"] 
     
     for veiculo in veiculos:
         # Calcula o score inicial de cada zona baseado na prioridade (população e gravidade)
@@ -57,6 +57,12 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
         tempo_acumulado = 0 # Tempo acumulado em minutos
         
         while autonomia_restante > 0:
+
+            # Verificar se o veículo ainda tem suprimentos
+            if veiculo["capacidade"] <= 0:
+                print(f"Veículo {veiculo['tipo']} sem suprimentos restantes")
+                break
+
             melhor_proxima_zona = None
             melhor_score = 0
             melhor_caminho = []
@@ -85,9 +91,10 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
                         continue
 
                     # Calcula o score ajustado
-                    tempo_restante = max(1, grafo.nodes[zona]['tempo_critico'] - tempo_chegada)
-                    score_ajustado = (scores_zonas[zona] / custo_caminho) + (1 / tempo_restante)
-                    
+                    score_ajustado = (scores_zonas[zona] / custo_caminho) + (1 / max(1, grafo.nodes[zona]['tempo_critico'] - tempo_chegada))
+                    if veiculo["capacidade"] < grafo.nodes[zona]["suprimentos_necessarios"]:
+                        score_ajustado *= 0.5
+
                     # Atualizar se for a melhor zona até agora
                     if score_ajustado > melhor_score:
                         melhor_score = score_ajustado
@@ -98,6 +105,12 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
 
             # Atualizar a rota 
             if melhor_proxima_zona:
+                suprimentos_entregues = min(veiculo["capacidade"], grafo.nodes[melhor_proxima_zona]["suprimentos_necessarios"])
+                veiculo["capacidade"] -= suprimentos_entregues
+                grafo.nodes[melhor_proxima_zona]["suprimentos_necessarios"] -= suprimentos_entregues
+                print(f"Veículo {veiculo['tipo']} entregou {suprimentos_entregues} suprimentos em {melhor_proxima_zona}")
+                print(f"Suprimentos restantes no veículo: {veiculo["capacidade"]}")
+
                 rota_atual.extend(melhor_caminho)
                 autonomia_restante -= custo_total
                 tempo_acumulado += tempo_caminho_selecionado
@@ -109,6 +122,7 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
             "rota": rota_atual,
             "zonas_atendidas": len(rota_atual) - 1,
             "autonomia_restante": autonomia_restante,
+            "suprimentos_restantes": suprimentos_restantes,
             "tempo_total": tempo_acumulado
         })
     
