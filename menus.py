@@ -31,22 +31,13 @@ def draw_button(text, x, y, width, height, color, text_color):
     text_surface = font.render(text, True, text_color)
     text_rect = text_surface.get_rect(center=(x + width // 2, y + height // 2))
     screen.blit(text_surface, text_rect)
-"""
-# Inicia uma nova thread para exibir o grafo incial (nao haver conflito com o pygame)
-def exibir_grafo(grafo):
-    thread = threading.Thread(target=mostrar_grafo, args=(grafo,))
-    thread.start()
 
-# Inicia uma nova thread para exibir o grafo resultado (nao haver conflito com o pygame)
-def mostrar_grafo_thread(grafo, rota, tipo_veiculo):
-    def exibir():
-        mostrar_rota(grafo, rota, tipo_veiculo)
-    thread = threading.Thread(target=exibir)
-    thread.start()
-"""
+global veiculo_selecionado
+veiculo_selecionado = None
 
 # Menu principal
 def menu_principal(grafo, veiculos): 
+    global veiculo_selecionado
     running = True
     while running:
         screen.fill(Gray)
@@ -129,7 +120,33 @@ def menu_veiculos(grafo, veiculos):
 
 # Menu de algoritmos
 def menu_algoritmos(grafo, veiculos):
+    global veiculo_selecionado
     running = True
+
+     # Verificar se o veículo foi selecionado
+    if veiculo_selecionado is None:
+        # Mensagem visual
+        while running:
+            screen.fill(White)
+            font = pygame.font.Font(None, 36)
+            mensagem = font.render("Erro: Selecione um veículo no menu principal!", True, (255, 0, 0))
+            screen.blit(mensagem, (200, 300))
+            botao_voltar = pygame.Rect(400, 400, 250, 50)
+            pygame.draw.rect(screen, (0, 0, 255), botao_voltar)
+            texto_voltar = font.render("Voltar", True, (255, 255, 255))
+            screen.blit(texto_voltar, (botao_voltar.x + 75, botao_voltar.y + 10))
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    mouse_x, mouse_y = event.pos
+                    if botao_voltar.collidepoint(mouse_x, mouse_y):
+                        return  # Retorna ao menu principal
+
+            pygame.display.update()
+
     while running:
         screen.fill(White)
         draw_button("A*", 400, 100, 250, 50, Blue, White)   

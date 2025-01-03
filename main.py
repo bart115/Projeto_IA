@@ -9,6 +9,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use('TkAgg')  # Altere para 'Qt5Agg' ou outro backend se necessário
 
+
 # Qual é a origem de onde vamos sair? em que zona estamos?
 def carregar_dados():
     print("Iniciando Sistema de Distribuição de Recursos...\n")
