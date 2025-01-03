@@ -16,7 +16,8 @@ def carregar_grafo(zonas_csv, caminhos_csv):
                 gravidade=int(linha["gravidade"]),
                 tempo_critico=int(linha["tempo_critico"]),
                 pos=(float(linha["pos_x"]), float(linha["pos_y"])),
-                suprimentos_necessarios = int(linha["suprimentos_necessarios"])
+                suprimentos_necessarios = int(linha["suprimentos_necessarios"]),
+                tipo='base' if linha["populacao"] == 0 else 'zona'
             )
 
     with open(caminhos_csv, mode='r', encoding='utf-8') as file:

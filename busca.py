@@ -105,12 +105,20 @@ def encontrar_melhores_rotas(grafo, veiculos, func):
 
             # Atualizar a rota 
             if melhor_proxima_zona:
-                suprimentos_entregues = min(veiculo["capacidade"], grafo.nodes[melhor_proxima_zona]["suprimentos_necessarios"])
-                veiculo["capacidade"] -= suprimentos_entregues
-                grafo.nodes[melhor_proxima_zona]["suprimentos_necessarios"] -= suprimentos_entregues
-                print(f"Veículo {veiculo['tipo']} entregou {suprimentos_entregues} suprimentos em {melhor_proxima_zona}")
-                print(f"Suprimentos restantes no veículo: {veiculo["capacidade"]}")
+                # Reabastecimento na base 
+                if grafo.nodes[melhor_proxima_zona]["tipo"] == "base":
+                    veiculo["capacidade"] = veiculo["capacidade_inicial"]
+                    autonomia_restante = veiculo["autonomia"]
+                    print(f"Veículo {veiculo['tipo']} foi reabastecido na base")
+                
+                else:
+                    suprimentos_entregues = min(veiculo["capacidade"], grafo.nodes[melhor_proxima_zona]["suprimentos_necessarios"])
+                    veiculo["capacidade"] -= suprimentos_entregues
+                    grafo.nodes[melhor_proxima_zona]["suprimentos_necessarios"] -= suprimentos_entregues
+                    print(f"Veículo {veiculo['tipo']} entregou {suprimentos_entregues} suprimentos em {melhor_proxima_zona}")
+                    print(f"Suprimentos restantes no veículo: {veiculo["capacidade"]}")
 
+                # Atualizar a rota, a autonomia e o tempo
                 rota_atual.extend(melhor_caminho)
                 autonomia_restante -= custo_total
                 tempo_acumulado += tempo_caminho_selecionado
